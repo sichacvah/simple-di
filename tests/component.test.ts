@@ -18,13 +18,23 @@ const initC = jest.fn()
 
 const compC = using(component(initC), ['a', 'b'])
 
+type DDeps = {
+  a: Named,
+  b: Named
+}
+
+const compD = using(
+  component((deps?: DDeps) => { return named('D') }),
+  ['a', 'b']
+)
 
 describe('systemMap', () => {
   it('start with deps', () => {
     const map = systemMap({
       a: compA,
       b: compB,
-      c: compC
+      c: compC,
+      d: compD
     })
 
     map.init()
