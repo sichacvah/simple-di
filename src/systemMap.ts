@@ -1,26 +1,26 @@
 import * as dependency from './dependency'
 
-type Component<T = any> = {
-  init: (deps?: Record<string, any>) => T,
+type Component<T, Deps = Record<string, any>> = {
+  init: (deps?: Deps) => T,
   stop?: () => void
   deps: string[]
 }
 
 
-export const component = <T>(init: (deps?: Record<string, any>) => T, stop?: () => void): Component<T> => ({
+export const component = <T, Deps = Record<string, any>>(init: (deps?: Deps) => T, stop?: () => void): Component<T, Deps> => ({
   init,
   stop,
   deps: []
 })
 
-export const using = <T>(component: Component<T>, deps: string[]) => ({
+export const using = <T, Deps = Record<string, any>>(component: Component<T, Deps>, deps: string[]) => ({
   ...component,
   deps
 })
 
 const noop = () => {}
 
-export const systemMap = <UT = any>(params: Record<string, Component<UT>>): Component => {
+export const systemMap = <UT = any, Deps = Record<string, any>>(params: Record<string, Component<UT, Deps>>): Component<void> => {
 
   const keys = Object.keys(params)
   const graph = keys.reduce((graph, key) => {
@@ -32,7 +32,6 @@ export const systemMap = <UT = any>(params: Record<string, Component<UT>>): Comp
 
   let resolvedDeps = {} as Record<string, any>
 
-  console.log('depsName', dependency.topoSort(graph))
   const uniqDeps = Array.from(new Set(dependency.topoSort(graph)).values())
   return {
     init: () => uniqDeps.forEach((key) => {
