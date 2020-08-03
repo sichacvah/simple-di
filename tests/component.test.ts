@@ -1,4 +1,4 @@
-import { component, using, systemMap,  } from './systemMap'
+import { component, using, systemMap,  } from '../src/systemMap'
 
 const named = (name: string) => ({
   name

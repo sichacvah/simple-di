@@ -1,4 +1,4 @@
-import { graph, topoComparator, topoSort } from './dependency'
+import { graph, topoComparator, topoSort } from '../src/dependency'
 
 
 // building a graph like:
