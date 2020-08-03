@@ -1,0 +1,20 @@
+{
+  "name": "component",
+  "version": "1.0.0",
+  "description": "Library for managing the lifecycle and dependencies of software components which have runtame state",
+  "main": "dist/index.js",
+  "license": "MIT",
+  "scripts": {
+    "test": "yarn jest"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.11.0",
+    "@babel/preset-env": "^7.11.0",
+    "@babel/preset-typescript": "^7.10.4",
+    "@types/jest": "^26.0.8",
+    "babel-jest": "^26.2.2",
+    "jest": "^26.2.2",
+    "typescript": "^3.9.7"
+  },
+  "dependencies": {}
+}
