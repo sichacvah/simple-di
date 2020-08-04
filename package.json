@@ -16,6 +16,5 @@
     "jest": "^26.2.2",
     "typescript": "^3.9.7"
   },
-  "dependencies": {},
-  "publishConfig": { "registry": "https://npm.pkg.github.com/" }
+  "dependencies": {}
 }
