@@ -1,6 +1,7 @@
 /node_modules
 /tests
 /src
+/dist/tests
 yarn.lock
 jest.config.js
 babel.config.js
