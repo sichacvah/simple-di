@@ -1,5 +1,5 @@
 {
-  "name": "simple-di",
+  "name": "explicit-di",
   "version": "1.0.0",
   "description": "Library for managing the lifecycle and dependencies of software components which have runtime state",
   "main": "dist/index.js",
