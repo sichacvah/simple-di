@@ -1,11 +1,11 @@
-# simple-di
+# explicit-di
 
 Usage:
 
 ```typescript
 // composition root file
 
-import { component, systemMap, using } from 'simple-di'
+import { component, systemMap, using } from 'explicit-di'
 import { loggerComponent } from '@logger'
 import { messagingComponent } from '@messaging'
 
@@ -21,7 +21,7 @@ const componentMap = {
 ```typescript
 // @logger
 import { FancyLogger } from 'fancy-logger-tool'
-import { component } from 'simple-di'
+import { component } from 'explicit-di'
 
 const loggerClient = new FancyLogger()
 
@@ -32,7 +32,7 @@ export const loggerComponent = component(() => loggerClient)
 // @messaging
 import { subscribe } from 'fancy-messaging-tool'
 import { ILogger } from '@interfaces'
-import { component } from 'simple-di'
+import { component } from 'explicit-di'
 
 interface Deps {
   logger: ILogger
