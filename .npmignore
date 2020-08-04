@@ -2,6 +2,7 @@
 /tests
 /src
 /dist/tests
+/dist/src/**/*.js.map
 yarn.lock
 jest.config.js
 babel.config.js
