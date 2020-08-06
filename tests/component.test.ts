@@ -16,11 +16,13 @@ const compB = using(component((deps?: BDeps) => { console.log('start B with ', d
 
 const initC = jest.fn()
 
-const compC = using(component(initC), ['a', 'b'])
+const compC = using(component<jest.Mock, { a: Named, b: Named }>(initC), ['a', 'b'])
 
 type DDeps = {
   a: Named,
-  b: Named
+  b: Named,
+  c: jest.Mock,
+  d: Named
 }
 
 const compD = using(
@@ -30,7 +32,7 @@ const compD = using(
 
 describe('systemMap', () => {
   it('start with deps', () => {
-    const map = systemMap({
+    const map = systemMap<DDeps[keyof DDeps], DDeps>({
       a: compA,
       b: compB,
       c: compC,
