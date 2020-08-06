@@ -3,7 +3,7 @@ import * as dependency from './dependency'
 type Component<T, Deps = Record<string, any>> = {
   init: (deps?: Deps) => T,
   stop?: () => void
-  deps: string[]
+  deps: (keyof Deps)[] 
 }
 
 
@@ -13,7 +13,7 @@ export const component = <T, Deps = Record<string, any>>(init: (deps?: Deps) => 
   deps: []
 })
 
-export const using = <T, Deps = Record<string, any>>(component: Component<T, Deps>, deps: string[]) => ({
+export const using = <T, Deps = Record<string, any>>(component: Component<T, Deps>, deps: (keyof Deps)[]) => ({
   ...component,
   deps
 })
@@ -26,7 +26,7 @@ export const systemMap = <UT = any, Deps = Record<string, any>>(params: Record<s
   const graph = keys.reduce((graph, key) => {
     const component = params[key]
     return component.deps.reduce((g, dep) => {
-      return g.depend(key, dep)
+      return g.depend(key, dep.toString())
     }, graph)
   }, dependency.graph())
 
@@ -35,7 +35,7 @@ export const systemMap = <UT = any, Deps = Record<string, any>>(params: Record<s
   const uniqDeps = Array.from(new Set(dependency.topoSort(graph)).values())
   return {
     init: () => uniqDeps.forEach((key) => {
-      const depsSet = new Set(params[key].deps)
+      const depsSet = new Set(params[key].deps as string[])
       const depsObject = Object.fromEntries(
         Object.entries(resolvedDeps).filter(([k]) => depsSet.has(k))
       ) 
