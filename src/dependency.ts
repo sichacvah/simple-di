@@ -185,30 +185,30 @@ export class MapDependencyGraph<Node extends string = string> implements Depende
     dependencies.delete(node)
     return new MapDependencyGraph({
       dependencies,
-      dependents: this._dependents
+      dependents: this.getDependents()
     })
   } 
 }
 
-const topoSortHelper = <Node extends string = string>(todo: Set<Node>, graph: MapDependencyGraph<Node>, sorted: Array<Node> = []): Array<Node> => {
+const topoSortHelper = <Node extends string = string>(todo: Set<Node>, graph: MapDependencyGraph<Node>, sorted: Array<Node>): Array<Node> => {
   if (todo.size === 0) {
-    return sorted
+    return Array.from(sorted)
   }
 
   const [node, ...more] = Array.from(todo.values())
   const deps = graph.immediateDependencies(node)
-  const [add, resultGraph] = Array.from(deps.values()).reduce(([add, g], dep) => {
+  const [add, g] = Array.from(deps.values()).reduce(([a, g], dep) => {
     const restGraph = g.removeEdge(node, dep) as MapDependencyGraph<Node>
-    const nextAdd = g.immediateDependents(node).size === 0 ? add.add(dep) : add
+    const nextAdd = restGraph.immediateDependents(dep).size === 0 ? new Set([dep, ...a]) : a
     return [nextAdd, restGraph]
   }, [new Set<Node>(), graph])
 
   return topoSortHelper(
     new Set(
-      more.concat(Array.from(add))
+      [...more, ...add]
     ),
-    resultGraph.removeNode(node),
-    [node].concat(sorted)
+    g.removeNode(node),
+    [node, ...sorted]
   )
 }
 
@@ -222,7 +222,7 @@ export const topoSort = <Node extends string = string>(
     nodes.filter(node => graph.immediateDependents(node).size === 0)
   )
   
-  return topoSortHelper(todo, graph)
+  return topoSortHelper(todo, graph, [])
 }
 
 export const topoComparator = <Node extends string = string>(graph: MapDependencyGraph<Node>) => {
