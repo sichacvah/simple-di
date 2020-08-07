@@ -40,6 +40,7 @@ export const systemMap = <UT = any, Deps = Record<string, any>>(params: Record<s
         Object.entries(resolvedDeps).filter(([k]) => depsSet.has(k))
       ) 
       resolvedDeps[key] = params[key].init(depsObject as Deps)
+      return resolvedDeps
     }),
     stop: () => uniqDeps.reverse().forEach((key) => {
       const stop = params[key].stop || noop
