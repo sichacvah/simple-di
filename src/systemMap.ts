@@ -20,7 +20,7 @@ export const using = <T, Deps = Record<string, any>>(component: Component<T, Dep
 
 const noop = () => {}
 
-export const systemMap = <UT = any, Deps = Record<string, any>>(params: Record<string, Component<UT, Deps>>): Component<void> => {
+export const systemMap = <UT = any, Deps = Record<string, any>>(params: Record<string, Component<UT, Deps>>): Component<void> & { resolvedDeps: Record<string, ReturnType<(Component<UT, Deps>)['init']>> } => {
 
   const keys = Object.keys(params)
   const graph = keys.reduce((graph, key) => {
@@ -30,17 +30,17 @@ export const systemMap = <UT = any, Deps = Record<string, any>>(params: Record<s
     }, graph)
   }, dependency.graph())
 
-  let resolvedDeps = {} as Record<string, any>
+  let resolvedDeps = {} as Record<string, ReturnType<(Component<UT, Deps>)['init']>>
 
   const uniqDeps = Array.from(new Set(dependency.topoSort(graph)).values())
   return {
+    resolvedDeps,
     init: () => uniqDeps.forEach((key) => {
       const depsSet = new Set(params[key].deps as string[])
       const depsObject = Object.fromEntries(
         Object.entries(resolvedDeps).filter(([k]) => depsSet.has(k))
       ) 
-      resolvedDeps[key] = params[key].init(depsObject as Deps)
-      return resolvedDeps
+      resolvedDeps[key] = params[key].init(depsObject as unknown as Deps)
     }),
     stop: () => uniqDeps.reverse().forEach((key) => {
       const stop = params[key].stop || noop
