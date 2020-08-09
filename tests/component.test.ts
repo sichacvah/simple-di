@@ -1,49 +1,62 @@
-import { component, using, systemMap,  } from '../src/systemMap'
+import { component, using, systemMap, Lifecycle, start } from '../src'
 
-type Named = {
-  name: string
+const lifecycleA = {
+  start: (a: Lifecycle) => {
+    console.log('startA')
+    return a
+  },
+  stop: (a: Lifecycle) => {
+    console.log('stopA')
+    return a
+  }
 }
 
-const named = (name: string): Named => ({
-  name
+const lifecycleB = {
+  start: (b: Lifecycle) => {
+    console.log('start B with ', b)
+    return b
+  },
+  stop: (b: Lifecycle) => {
+    return b
+  }
+}
+
+const compA = component(lifecycleA)
+
+const compB = component(lifecycleB)
+
+const initC = jest.fn().mockImplementation((a) => {
+  console.log('a', a)
+  return a
 })
-const compA = component(() => { console.log('startA'); return named('A') }, () => { console.log('stopA') })
 
-type BDeps = {
-  a: Named
-}
-const compB = using(component((deps?: BDeps) => { console.log('start B with ', deps); return named('B') }), ['a'])
-
-const initC = jest.fn()
-
-const compC = using(component<jest.Mock, { a: Named, b: Named }>(initC), ['a', 'b'])
-
-type DDeps = {
-  a: Named,
-  b: Named,
-  c: jest.Mock,
-  d: Named
+const lifecycleC = {
+  start: initC,
+  stop: (c: Lifecycle) => {
+    return c
+  }
 }
 
-const compD = using(
-  component((deps?: DDeps) => { return named('D') }),
-  ['a', 'b']
-)
+const compC = component(lifecycleC)
 
 describe('systemMap', () => {
   it('start with deps', () => {
-    const map = systemMap<DDeps[keyof DDeps], DDeps>({
+    const map = systemMap({
       a: compA,
       b: compB,
-      c: compC,
-      d: compD
+      c: using(compC, ['a', 'b']),
+      d: component({
+        start: (d) => d,
+        stop: (d) => d
+      })
     })
 
-    map.init()
+    start(map)
 
     expect(initC).toBeCalledWith({
-      a: named('A'),
-      b: named('B')
+      a: component(lifecycleA),
+      b: component(lifecycleB),
+      ...using(compC, ['a', 'b'])
     })
 
   })
