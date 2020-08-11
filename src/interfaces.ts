@@ -1,6 +1,6 @@
 export interface Lifecycle extends Record<string, any> {
-  start: (lifecycle: Lifecycle) => Lifecycle
-  stop: (lifecycle: Lifecycle) => Lifecycle
+  start: (lifecycle: Lifecycle) => Promise<Lifecycle> | Lifecycle
+  stop: (lifecycle: Lifecycle) => Promise<Lifecycle> | Lifecycle
 }
 
 export interface Component extends Lifecycle {

@@ -63,7 +63,7 @@ const getComponent = (system: Lifecycle, key: string) => {
   return component
 }
 
-const tryAction = (
+const tryAction = async (
   component: Lifecycle,
   system: Lifecycle,
   func: (lifecycle: Lifecycle) => Lifecycle,
@@ -115,11 +115,31 @@ const getComponentKeys = (component: Record<string, any>) => {
   return Object.keys(component).filter(key => key !== '__dependencies' && key !== 'start' && key !== 'stop')
 }
 
+const asyncReduceComponents = async (
+  system: Lifecycle,
+  componentsKeys: string[],
+  method: keyof Lifecycle
+): Promise<Lifecycle> => {
+  const [key, ...rest] = componentsKeys
+  if (!key) return system
+  const componentBeforeUpdate = getComponent(system, key)
+  const component = {
+    ...componentBeforeUpdate,
+    ...extractDependency(system, key, componentBeforeUpdate)
+  }
+  const updatedComponent = await tryAction(component, system, component[method], key)
+  const next = {
+    ...system,
+    [key]: updatedComponent
+  }
+  return asyncReduceComponents(next, rest, method)
+}
+
 const updateSystem = (
   system: Lifecycle,
   method: keyof Lifecycle,
   reverse: boolean
-): Lifecycle => {
+): Promise<Lifecycle> => {
   const keys = getComponentKeys(system)
   const graph = keys.reduce((graph, key) => {
     const component = system[key] as Partial<Component> | null
@@ -135,17 +155,7 @@ const updateSystem = (
     components = components.reverse()
   }
 
-  return components.reduce((system, key) => {
-    const componentBeforeUpdate = getComponent(system, key)
-    const component = {
-      ...componentBeforeUpdate,
-      ...extractDependency(system, key, componentBeforeUpdate)
-    }
-    return {
-      ...system,
-      [key]: tryAction(component, system, component[method], key)
-    }
-  }, system)
+  return asyncReduceComponents(system, components, method)
 }
 
 export const systemMap = (map: Record<string, Component>): Component => {

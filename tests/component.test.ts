@@ -13,11 +13,18 @@ const lifecycleA = {
 
 const lifecycleB = {
   start: (b: Lifecycle) => {
-    console.log('start B with ', b)
-    return b
+    const nextB = {
+      ...b,
+      config: { 'c': 'f' }
+    }
+    return nextB
   },
   stop: (b: Lifecycle) => {
-    return b
+    const nextB = {
+      ...b,
+      config: { 'c': 'f' }
+    }
+    return nextB
   }
 }
 
@@ -26,13 +33,13 @@ const compA = component(lifecycleA)
 const compB = component(lifecycleB)
 
 const initC = jest.fn().mockImplementation((a) => {
-  console.log('a', a)
-  return a
+  console.log('c - component', JSON.stringify(a))
+  return Promise.resolve(a)
 })
 
 const lifecycleC = {
   start: initC,
-  stop: (c: Lifecycle) => {
+  stop: async (c: Lifecycle) => {
     return c
   }
 }
@@ -40,22 +47,25 @@ const lifecycleC = {
 const compC = component(lifecycleC)
 
 describe('systemMap', () => {
-  it('start with deps', () => {
+  it('start with deps', async () => {
     const map = systemMap({
       a: compA,
       b: compB,
       c: using(compC, ['a', 'b']),
       d: component({
-        start: (d) => d,
-        stop: (d) => d
+        start: async (d) => d,
+        stop: async (d) => d
       })
     })
 
-    start(map)
+    await start(map)
 
     expect(initC).toBeCalledWith({
       a: component(lifecycleA),
-      b: component(lifecycleB),
+      b: {
+        ...component(lifecycleB),
+        config: { 'c': 'f' }
+      },
       ...using(compC, ['a', 'b'])
     })
 
