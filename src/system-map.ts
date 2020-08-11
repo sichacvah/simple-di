@@ -85,6 +85,13 @@ const tryAction = async <Dependencies extends Record<string, any> = Record<strin
 
 export const component = (lifecycle: Lifecycle): Component => initComponent(lifecycle)
 
+export const usingLifecycle = (
+  lifecycle: Lifecycle,
+  dependencies: Record<string, string> | string[]
+): Component => {
+  return using(component(lifecycle), dependencies)
+}
+
 export const using = (
   { lifecycle }: Component,
   dependencies: Record<string, string> | string[]
