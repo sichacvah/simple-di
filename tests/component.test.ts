@@ -1,30 +1,24 @@
 import { component, using, systemMap, Lifecycle, start } from '../src'
 
 const lifecycleA = {
-  start: (a: Lifecycle) => {
+  start: () => {
     console.log('startA')
-    return a
+    return lifecycleA
   },
-  stop: (a: Lifecycle) => {
+  stop: () => {
     console.log('stopA')
-    return a
+    return lifecycleA
   }
 }
 
+
 const lifecycleB = {
-  start: (b: Lifecycle) => {
-    const nextB = {
-      ...b,
-      config: { 'c': 'f' }
-    }
-    return nextB
+  start: () => {
+
+    return lifecycleB
   },
-  stop: (b: Lifecycle) => {
-    const nextB = {
-      ...b,
-      config: { 'c': 'f' }
-    }
-    return nextB
+  stop: () => {
+    return lifecycleB
   }
 }
 
@@ -33,13 +27,12 @@ const compA = component(lifecycleA)
 const compB = component(lifecycleB)
 
 const initC = jest.fn().mockImplementation((a) => {
-  console.log('c - component', JSON.stringify(a))
-  return Promise.resolve(a)
+  return Promise.resolve(lifecycleC)
 })
 
 const lifecycleC = {
   start: initC,
-  stop: async (c: Lifecycle) => {
+  stop: async (c: any) => {
     return c
   }
 }
@@ -51,24 +44,91 @@ describe('systemMap', () => {
     const map = systemMap({
       a: compA,
       b: compB,
-      c: using(compC, ['a', 'b']),
-      d: component({
-        start: async (d) => d,
-        stop: async (d) => d
-      })
+      c: using(compC, ['a', 'b'])
     })
 
     await start(map)
 
     expect(initC).toBeCalledWith({
-      a: component(lifecycleA),
-      b: {
-        ...component(lifecycleB),
-        config: { 'c': 'f' }
-      },
-      ...using(compC, ['a', 'b'])
+      a: lifecycleA,
+      b: lifecycleB
     })
 
+  })
+
+  it('start with complext deps', async () => {
+    type Config = Lifecycle & { API_ENDPOINT: string, ANALYTICS_API: string } 
+    const config: Config = {
+      start: () => config,
+      stop: () => config,
+      API_ENDPOINT: 'https://example.com',
+      ANALYTICS_API: 'https://analytics.com'
+    }
+
+    interface ErrorLoggingDeps {
+      config: Config
+    }
+
+    class Analytics implements Lifecycle<{ config: Config}> {
+      config?: Config
+
+      start = ({ config }: { config: Config }) => {
+        this.config = config
+        return this
+      }
+
+      stop = (obj: any) => this
+
+      captureEvent = () => {
+        console.log('captureEvent')
+      }
+    }
+
+    class ErrorLogging implements Lifecycle<ErrorLoggingDeps> {
+      deps?: ErrorLoggingDeps
+      start = (deps: ErrorLoggingDeps) => {
+        this.deps = deps
+        return this
+      }
+      stop = (deps: ErrorLoggingDeps) => {
+        return this
+      }
+
+      captureMessage = (str: string) => {
+        console.log('str - ', str)
+      }
+    }
+
+    type HttpClientDeps = {
+      config: Config,
+      analytics: Analytics,
+      errorLogging: ErrorLogging
+    }
+
+    class HttpClient implements Lifecycle<HttpClientDeps> {
+      config!: Config
+      analytics!: Analytics
+      errorLogging!: ErrorLogging
+
+      start = ({ config, analytics, errorLogging }: HttpClientDeps) => {
+        this.config = config
+        this.analytics = analytics
+        this.errorLogging = errorLogging
+        console.log(config, analytics, errorLogging)
+        return this
+      }
+
+      stop = (p: any) => this
+    }
+
+    const map = systemMap({
+      config: component(config),
+      errorLogging: using(component(new ErrorLogging()), ['config']),
+      analytics: using(component(new Analytics()), ['config']),
+      httpClient: using(component(new HttpClient()), ['config', 'analytics', 'errorLogging'])
+    })
+
+    await start(map)
   })
 })
 

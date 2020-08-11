@@ -1,8 +1,9 @@
-export interface Lifecycle extends Record<string, any> {
-  start: (lifecycle: Lifecycle) => Promise<Lifecycle> | Lifecycle
-  stop: (lifecycle: Lifecycle) => Promise<Lifecycle> | Lifecycle
+export interface Lifecycle<Dependencies = any> extends Record<string, any> {
+  start: (dependencies: Dependencies) => (Promise<Lifecycle> | Lifecycle)
+  stop: (dependencies: Dependencies) => (Promise<Lifecycle> | Lifecycle)
 }
 
-export interface Component extends Lifecycle {
+export interface Component {
+  lifecycle: Lifecycle
   __dependencies: Record<string, string>
 }

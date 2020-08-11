@@ -1,4 +1,4 @@
-import { Lifecycle } from './interfaces'
+import { Lifecycle, Component } from './interfaces'
 
 export enum ErrorReason {
   missingComponent = 'missing-component',
@@ -23,10 +23,10 @@ export class MissingComponentError extends Error implements SystemError {
   system: Lifecycle
   systemKey: string
   reason: ErrorReason
-  component?: Lifecycle
+  component?: Component
   dependencyKey?: string
 
-  constructor(params: SystemErrorParams & {component?: Lifecycle, dependencyKey?: string}) {
+  constructor(params: SystemErrorParams & {component?: Component, dependencyKey?: string}) {
     super(params.message)
     this.system = params.system
     this.systemKey = params.systemKey
@@ -54,9 +54,9 @@ export class ComponentMethodError extends Error implements SystemError {
   systemKey: string
   reason: ErrorReason
   function: Function
-  component: Lifecycle
+  component: Component
 
-  constructor(params: SystemErrorParams & { function: Function, component: Lifecycle }) {
+  constructor(params: SystemErrorParams & { function: Function, component: Component }) {
     super(params.message)
     this.system = params.system
     this.systemKey = params.systemKey
