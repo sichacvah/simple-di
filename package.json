@@ -1,8 +1,8 @@
 {
   "name": "explicit-di",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Library for managing the lifecycle and dependencies of software components which have runtime state",
-  "main": "dist/src/index.js",
+  "main": "dist/index.js",
   "license": "MIT",
   "scripts": {
     "test": "yarn jest"
