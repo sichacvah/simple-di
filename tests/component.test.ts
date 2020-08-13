@@ -27,6 +27,7 @@ const compA = component(lifecycleA)
 const compB = component(lifecycleB)
 
 const initC = jest.fn().mockImplementation((a) => {
+  console.log(a)
   return Promise.resolve(lifecycleC)
 })
 
@@ -49,7 +50,7 @@ describe('systemMap', () => {
 
     await start(map)
 
-    expect(initC).toBeCalledWith({
+    expect(lifecycleC.start).toBeCalledWith({
       a: lifecycleA,
       b: lifecycleB
     })

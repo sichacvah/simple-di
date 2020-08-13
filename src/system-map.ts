@@ -176,10 +176,16 @@ export const systemMap = (map: Record<string, Component>): Component => {
   return component(system)
 }
 
-export const start = ({ lifecycle }: Component) => {
-  return lifecycle.start(lifecycle)
+export const start = async ({ lifecycle, ...rest }: Component) => {
+  return {
+    ...rest,
+    lifecycle: await lifecycle.start(lifecycle)
+  }
 }
 
-export const stop = ({ lifecycle }: Component) => {
-  return lifecycle.stop(lifecycle)
+export const stop = async ({ lifecycle, ...rest }: Component) => {
+  return {
+    ...rest,
+    lifecycle: await lifecycle.stop(lifecycle)
+  }
 }
