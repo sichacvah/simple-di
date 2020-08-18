@@ -16,6 +16,10 @@ const componentMap = {
     deps: ['logger']
   )
 }
+
+
+
+start(systemMap(componentMap))
 ```
 
 ```typescript
