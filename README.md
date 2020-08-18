@@ -6,13 +6,13 @@ Usage:
 // composition root file
 
 import { component, systemMap, using } from 'explicit-di'
-import { loggerComponent } from '@logger'
-import { messagingComponent } from '@messaging'
+import { LoggerClient } from '@logger'
+import { MessagingClient } from '@messaging'
 
 const componentMap = {
-  logger: loggerComponent,
+  logger: component(new LoggerClient()),
   messaging: using(
-    messagingComponent,
+    component(new MessagingClient()),
     deps: ['logger']
   )
 }
@@ -21,42 +21,54 @@ const componentMap = {
 ```typescript
 // @logger
 import { FancyLogger } from 'fancy-logger-tool'
-import { component } from 'explicit-di'
+import { Logger } from '@interfaces'
+import { component, LifeCycle } from 'explicit-di'
 
-const loggerClient = new FancyLogger()
-
-export const loggerComponent = component(() => loggerClient)
+export class LoggerClient implements LifeCycle, ILogger {
+  logger: FancyLogger
+  
+  constructor() {
+    this.logger = new FancyLogger()
+  }
+  
+  start = () => this
+  stop = () => this
+  
+  logMessage = (message: string) => {
+    this.logger.proccessMessage(message)
+  }
+}
 ```
 
 ```typescript
 // @messaging
 import { subscribe } from 'fancy-messaging-tool'
 import { ILogger } from '@interfaces'
-import { component } from 'explicit-di'
+import { component, LifeCycle } from 'explicit-di'
 
 interface Deps {
   logger: ILogger
 }
 
-class MessagingClient {
+export class MessagingClient implements LifeCycle<Deps> {
   unsubscribe?: () => {}
+  logger!: ILogger
 
   start: ({ logger }: Deps) => {
-    logger.logMessage('Start Listening')
+    this.logger = logger
+    this.logger.logMessage('Start Listening')
     this.unsubscribe = subscribe()
+    return this
   }
 
   stop: () => {
-    if (this.unsubscribe) this.unsubscribe()
+    if (this.unsubscribe) {
+      this.logger.logMessage('Stop listening')
+      this.unsubscribe()
+    }
+    return this
   }
 }
-
-const messagingClient = new MessagingClient()
-
-export const messagingComponent = component(
-  messagingClient.start,
-  messagingClient.stop
-)
 
 ```
 
